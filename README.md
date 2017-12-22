@@ -1,17 +1,19 @@
-# Data_Strcture_and_Algorithm
-
 #include <iostream>
 #include <math.h>
 #include <assert.h>
 using namespace std;
 
-// simple calculator
+//数据结构与算法实验课文件
+//第一次实验
 //Stack abstract class
+
 template <typename E> class Stack {
 private:
+	
 	void operator =(const Stack&){}
 	Stack(const Stack&){}
 public:
+	
 	Stack(){}
 	virtual ~Stack(){}
 	virtual void clear() = 0;
@@ -23,10 +25,12 @@ public:
 //Array-based stack implementation
 template <typename E> class AStack :public Stack<E> {
 private:
+	
 	int maxSize;
 	int top;
 	E *listArray;
 public:
+	
 	AStack(int size = 100) {
 		maxSize = size; top = 0; listArray = new E[size];
 	}
@@ -46,8 +50,12 @@ public:
 	}
 	int length() const { return top; }
 };
+
+
+
 int isp(char ch)	//获取并返回ch的栈内优先级
-{
+{	
+	
 	if (ch == '=') return 0;
 	else if (ch == '+') return 3;
 	else if (ch == '-') return 3;
@@ -65,6 +73,7 @@ int isp(char ch)	//获取并返回ch的栈内优先级
 
 int osp(char ch)	//获取并返回ch的栈外优先级
 {
+	
 	if (ch == '=') return 0;
 	else if (ch == '+') return 2;
 	else if (ch == '-') return 2;
@@ -82,12 +91,14 @@ int osp(char ch)	//获取并返回ch的栈外优先级
 
 int factorial(int x)
 {
+	
 	if (x == 0) return 1;
 	else return x * factorial(x - 1);
 }
 
 bool cal(char op, double x, double y, double &r)	// 计算r = x op y，计算成功，返回true
 {
+	
 	if (op == '+')
 	{
 		r = x + y;
@@ -156,17 +167,21 @@ bool cal(char op, double x, double y, double &r)	// 计算r = x op y，计算成
 
 void GetNextchar(char &ch)	//从输入的表达式中获取一个字符
 {
+	
 	ch = cin.get();
 }
 
 bool isdigit(char ch)	//判断ch是否为数字0-9
 {
+	
 	if (ch >= '0' && ch <= '9') return true;
 	else return false;
 }
 
+
 bool IsOperator(char ch)	//判断ch是否为操作符
 {
+	
 	if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '^' || ch == '&' || ch == '%' || ch == '(' || ch == ')' || ch == '=' || ch == '|' || ch == 's' || ch == 'c' || ch == 't' || ch == '!') return true;
 	else return false;
 }
@@ -174,14 +189,18 @@ bool IsOperator(char ch)	//判断ch是否为操作符
 template <typename E>
 bool Get2Operands(AStack<E> & opnd, double &x, double &y)	//从操作数栈中取2个操作数
 {
+	
 	if (opnd.length() < 2) return false;
 	x = opnd.pop();
 	y = opnd.pop();
 	return true;
 }
 
+
+
 int main()
 {
+	
 	//生成一个即科学又帅比的界面
 	cout << "(☆▽☆) (*^_^*) (☆▽☆) (*^_^*) (☆▽☆) (*^_^*) (☆▽☆) (*^_^*) (☆▽☆) (*^_^*) (☆▽☆) (*^_^*)" << endl;
 	cout << endl;
@@ -201,13 +220,13 @@ int main()
 	cout << endl;
 	cout << "Please start your show~   *_* " << endl;
 	cout << "#####################################################################################################" << endl;
-
+	
 	while (1)
 	{
 		cout << "Please enter the expression(The expression should end with '=','N' if you want to quit!):" << endl;
 		AStack<double> OPND;	//操作数栈的定义
 		AStack<char> OPTR;	//操作符栈的定义
-
+		
 		OPTR.push('=');
 		char pre_char = '=';	//pre_char 表示当前处理字符的前一个字符，如为数，则其值'0'
 		char ch;
@@ -270,4 +289,3 @@ int main()
 		GetNextchar(ch);
 	}
 }
-
