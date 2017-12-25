@@ -211,7 +211,6 @@ void printShortestPath(Graph *G, int v0, int v1, int *path, int *dist, Vertex ve
 
 void main()
 {
-	// 生成一个即科学又帅比的界面
 	cout << "(☆▽☆) (*^_^*) (☆▽☆) (*^_^*) (☆▽☆) (*^_^*) (☆▽☆) (*^_^*) (☆▽☆) (*^_^*) (☆▽☆) (*^_^*)" << endl;
 	cout << endl;
 	cout << "                                              Digital Campus" << endl;
