@@ -1,0 +1,395 @@
+#include <iostream>
+#include <math.h>
+#include <assert.h>
+#include <string>
+using namespace std;
+
+class Graph
+{
+private:
+	
+  int numVertex, numEdge;		// Store number of vertices, edges
+	int **matrix;	// Pointer to adjacency matrix
+	int *mark;	// Pointer to mark array
+
+public:
+	Graph(int numVert)	// Constructor
+	{
+		Init(numVert);
+	}
+
+	~Graph()	// Destructor
+	{
+		delete [] mark;		// Return dynamically allocated memory
+		for (int i = 0; i < numVertex; i++)
+		{
+			delete[] matrix[i];
+		}
+		delete[] matrix;
+	}
+
+	void Init(int n)	// Initialize the graph
+	{
+		int i;
+		numVertex = n;
+		numEdge = 0;
+		mark = new int[n];		// Initialize mark array
+		for (i = 0; i < numVertex; i++)
+		{
+			mark[i] = -1;	// -1 UNVISITED, 1 VISITED
+		}
+		matrix = (int**) new int*[numVertex];	// Make matrix
+		for (i = 0; i < numVertex; i++)
+		{
+			matrix[i] = new int[numVertex];
+		}
+		for (i = 0; i < numVertex; i++)		// Initialize to 0 weights
+		{
+			for (int j = 0; j < numVertex; j++)
+			{
+				matrix[i][j] = 0;
+			}
+		}
+	}
+
+	int n() { return numVertex; }	// Number of vertices
+	int e() { return numEdge; }		// Number of edges
+
+	// Return first neighbor of "v"
+	int first(int v)
+	{
+		for (int i = 0; i < numVertex; i++)
+		{
+			if (matrix[v][i] != 0)
+				return i;
+		}
+		return numVertex;	// Return n if none
+	}
+
+	// Return v's next neighbor after w
+	int next(int v, int w)
+	{
+		for (int i = w + 1; i < numVertex; i++)
+		{
+			if (matrix[v][i] != 0)
+				return i;
+		}
+		return numVertex;	// Return n if none
+	}
+
+	// Set edge (v1, v2) to "wt"
+	void setEdge(int v1, int v2, int wt)
+	{
+		assert(wt > 0);		// Illegal weight value
+		if (matrix[v1][v2] == 0)
+		{
+			numEdge++;
+			matrix[v1][v2] = wt;
+		}
+	}
+
+	void delEdge(int v1, int v2)	// Delete edge (v1, v2)
+	{
+		if (matrix[v1][v2] != 0)
+		{
+			numEdge--;
+			matrix[v1][v2] = 0;
+		}
+	}
+
+	bool isEdge(int i, int j)	// Is (i, j) an edge?
+	{
+		return matrix[i][j] != 0;
+	}
+	
+	int weight(int v1, int v2) { return matrix[v1][v2]; }
+	int getMark(int v) { return mark[v]; }
+	void setMark(int v, int val) { mark[v] = val; }
+};
+
+class Vertex
+{
+public:
+	int sequenceNumber;
+	string name;
+	string information;
+	Vertex(int sequenceNumber = -1, string name = "您要找的地点不存在", string information = "您要找的地点不存在")
+	{
+		this->sequenceNumber = sequenceNumber;
+		this->name = name;
+		this->information = information;
+	}
+};
+
+Vertex findVertex(Graph *g, char *placeName, Vertex vertexs[])		// 查询顶点，根据给定的名称，返回顶点
+{
+	int n = g->n();
+	for (int i = 0; i < n; i++)
+	{
+		if (vertexs[i].name == placeName) return vertexs[i];
+	}
+	return Vertex(-1);
+}
+
+void printVertex(Vertex a)		//根据给定的节点，打印定点信息
+{
+	cout << "Sequence number: " << a.sequenceNumber << endl;
+	cout << "Place: " << a.name << endl;
+	cout << "Introduction: " << a.information << endl;
+}
+
+void Dijkstra(Graph *G, int v0, int *path, int *dist)	// Dijkstra算法实现
+{
+	for (int v = 0; v < G->n(); v++)
+	{
+		dist[v] = (v0 != v && G->weight(v0, v) == 0) ? 100000 : G->weight(v0, v);
+		if (v0 != v && dist[v] < 100000){path[v] = v0;}
+		else { path[v] = -1; }
+		G->setMark(v, -1);
+	}
+	G->setMark(v0, 1);
+	for (int u = 0; u < G->n(); u++)
+	{
+		if (u != v0)
+		{
+			int minVal = 100000;
+			int v1 = v0;
+			for (int w = 0; w < G->n(); w++)
+			{
+				if (G->getMark(w) == -1 && dist[w] < minVal)
+				{
+					v1 = w;
+					minVal = dist[w];
+				}
+			}
+			G->setMark(v1, 1);
+			for (int v2 = G->first(v1); v2 < G->n(); v2 = G->next(v1, v2))
+			{
+				if (G->getMark(v2) == -1 && minVal + G->weight(v1, v2) < dist[v2])
+				{
+					dist[v2] = minVal + G->weight(v1, v2);
+					path[v2] = v1;
+				}
+			}
+		}
+	}
+}
+
+
+void printShortestPath(Graph *G, int v0, int v1, int *path, int *dist, Vertex vertexs[])	// 打印最短路径信息
+{
+	Dijkstra(G, v0, path, dist);
+	int distance = dist[v1];
+	cout << "Distance: " << distance << "m" << endl;
+	int i = 0;
+	int v = v1;
+	while (v != v0)
+	{
+		v = path[v];
+		i++;
+	}
+	int route[21];
+	v = v1;
+	for (int j = i; j >= 0; j--)
+	{
+		route[j] = v;
+		v = path[v];
+	}
+	cout << "Shortest path: " << vertexs[route[0]].name;
+	for (int j = 1; j <= i; j++)
+	{
+		cout << "==>" << vertexs[route[j]].name;
+	}
+	cout << endl;
+	float walktime = distance / 90.0;	// 1.1m/s
+	float ridetime = distance / 240.0;	// 4m/s
+	float limitridetime = distance / 360.0;		// 6m/s
+	cout << "Walking time: " << walktime << "min" << endl;
+	cout << "Riding time: " << ridetime << "min" << endl;
+	cout << "Limit Riding time: " << limitridetime << "min" << endl;
+}
+
+void main()
+{
+	// 生成一个即科学又帅比的界面
+	cout << "(☆▽☆) (*^_^*) (☆▽☆) (*^_^*) (☆▽☆) (*^_^*) (☆▽☆) (*^_^*) (☆▽☆) (*^_^*) (☆▽☆) (*^_^*)" << endl;
+	cout << endl;
+	cout << "                                              Digital Campus" << endl;
+	cout << "                                                        Designed by 侯牧村 吴盈 李宬睿 from group 666" << endl;
+	cout << endl;
+	cout << "Instructions:" << endl;
+	cout << "1. This Digital Campus is able to inquire the information of some important sites in Sichuan University " << endl;
+	cout << "   Jiangan Campus and calculate the shortest path between two sites." << endl;
+	cout << "2. If you want to inquire the information of a site, please input 1, and then input the site." << endl;
+	cout << "3. If you want to calculate the shortest path beween two sites, please input 2, and then input the starting" << endl;
+	cout << "   point and the end point." << endl;
+	cout << "4. Any other input if you want to quit." << endl;
+	cout << endl;
+	cout << "Please start your show~   *_* " << endl;
+	cout << "######################################### Digital Campus ##############################################" << endl;
+
+	// 江安校区地点信息
+	Vertex v0 = Vertex(0, "江安校区18舍", "这是男生的大本营");
+	Vertex v1 = Vertex(1, "江安校区21舍", "这是女生的大本营");
+	Vertex v2 = Vertex(2, "青广/一餐", "摆摊圣地");
+	Vertex v3 = Vertex(3, "二餐/校医院", "可以经常去，但二楼贼贵");
+	Vertex v4 = Vertex(4, "三八广场", "冲空调费");
+	Vertex v5 = Vertex(5, "一教A/C/D", "这教室贼高级");
+	Vertex v6 = Vertex(6, "一教B", "破教室");
+	Vertex v7 = Vertex(7, "江安图书馆", "座位很舒服但我从来不去");
+	Vertex v8 = Vertex(8, "白石桥", "杀猪的好地方");
+	Vertex v9 = Vertex(9, "综合楼", "有大教室");
+	Vertex v10 = Vertex(10, "西南门", "学生出校的核心门");
+	Vertex v11 = Vertex(11, "南门", "南门外好吃的炒鸡多，有冒菜");
+	Vertex v12 = Vertex(12, "一基楼", "做生物实验的地方，房顶不错");
+	Vertex v13 = Vertex(13, "二基楼", "做计算机实验的地方");
+	Vertex v14 = Vertex(14, "一号足球场/体育馆", "重大仪式活动在这里");
+	Vertex v15 = Vertex(15, "二号运动场", "能打篮球、踢足球、打排球等等，设备齐全");
+	Vertex v16 = Vertex(16, "法学院/研究生宿舍/三餐", "三餐的饭贼科学");
+	Vertex v17 = Vertex(17, "东门", "通往韩国城的大道");
+	Vertex v18 = Vertex(18, "东南门", "赶紧修好地铁吧哈哈哈哈");
+	Vertex v19 = Vertex(19, "艺术学院", "可以去楼顶玩玩");
+	Vertex v20 = Vertex(20, "快递街", "一堆人取快递的地方");
+
+	// 建图
+	Graph *JiangAn = new Graph(21);
+	JiangAn->Init(21);
+	JiangAn->setEdge(0, 1, 325);
+	JiangAn->setEdge(0, 2, 452);
+	JiangAn->setEdge(0, 3, 232);
+	JiangAn->setEdge(0, 19, 377);
+	JiangAn->setEdge(1, 0, 325);
+	JiangAn->setEdge(2, 0, 452);
+	JiangAn->setEdge(2, 3, 379);
+	JiangAn->setEdge(2, 4, 418);
+	JiangAn->setEdge(2, 5, 810);
+	JiangAn->setEdge(2, 6, 635);
+	JiangAn->setEdge(2, 7, 766);
+	JiangAn->setEdge(2, 15, 322);
+	JiangAn->setEdge(2, 19, 244);
+	JiangAn->setEdge(3, 0, 232);
+	JiangAn->setEdge(3, 2, 379);
+	JiangAn->setEdge(3, 4, 198);
+	JiangAn->setEdge(4, 2, 418);
+	JiangAn->setEdge(4, 3, 198);
+	JiangAn->setEdge(4, 15, 331);
+	JiangAn->setEdge(5, 2, 810);
+	JiangAn->setEdge(5, 6, 230);
+	JiangAn->setEdge(5, 7, 48);
+	JiangAn->setEdge(5, 9, 225);
+	JiangAn->setEdge(5, 11, 381);
+	JiangAn->setEdge(6, 2, 635);
+	JiangAn->setEdge(6, 5, 230);
+	JiangAn->setEdge(6, 11, 533);
+	JiangAn->setEdge(6, 20, 465);
+	JiangAn->setEdge(7, 2, 766);
+	JiangAn->setEdge(7, 5, 48);
+	JiangAn->setEdge(7, 13, 144);
+	JiangAn->setEdge(8, 16, 1500);
+	JiangAn->setEdge(8, 19, 178);
+	JiangAn->setEdge(9, 5, 225);
+	JiangAn->setEdge(9, 11, 238);
+	JiangAn->setEdge(9, 12, 320);
+	JiangAn->setEdge(10, 15, 145);
+	JiangAn->setEdge(10, 20, 142);
+	JiangAn->setEdge(11, 5, 381);
+	JiangAn->setEdge(11, 6, 533);
+	JiangAn->setEdge(11, 9, 238);
+	JiangAn->setEdge(11, 18, 596);
+	JiangAn->setEdge(12, 9, 320);
+	JiangAn->setEdge(12, 14, 117);
+	JiangAn->setEdge(13, 7, 144);
+	JiangAn->setEdge(13, 14, 442);
+	JiangAn->setEdge(13, 16, 214);
+	JiangAn->setEdge(14, 12, 117);
+	JiangAn->setEdge(14, 13, 442);
+	JiangAn->setEdge(14, 17, 554);
+	JiangAn->setEdge(14, 18, 218);
+	JiangAn->setEdge(15, 2, 322);
+	JiangAn->setEdge(15, 4, 331);
+	JiangAn->setEdge(15, 10, 145);
+	JiangAn->setEdge(15, 19, 342);
+	JiangAn->setEdge(16, 8, 1500);
+	JiangAn->setEdge(16, 13, 214);
+	JiangAn->setEdge(16, 17, 466);
+	JiangAn->setEdge(17, 14, 554);
+	JiangAn->setEdge(17, 16, 466);
+	JiangAn->setEdge(18, 11, 596);
+	JiangAn->setEdge(18, 14, 218);
+	JiangAn->setEdge(19, 0, 377);
+	JiangAn->setEdge(19, 2, 244);
+	JiangAn->setEdge(19, 8, 178);
+	JiangAn->setEdge(19, 15, 342);
+	JiangAn->setEdge(20, 6, 465);
+	JiangAn->setEdge(20, 10, 142);
+
+	// 生成节点数组
+	Vertex vertexs[21] = { v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16, v17, v18, v19, v20 };
+
+	// 生成说明
+	
+  cout << "All places:" << endl;
+	cout << "江安校区18舍  " << "江安校区21舍  " << "青广/一餐  " << "二餐/校医院  " << "三八广场  " << "一教A/C/D  " << "一教B  " << "江安图书馆  " << "白石桥  " << endl;
+	cout << "综合楼  " << "西南门  " << "南门  " << "一基楼  " << "二基楼  " << "一号足球场/体育馆  " << "二号运动场  " << "法学院/研究生宿舍/三餐  " << "东门  " << endl;
+	cout << "东南门  " << "艺术学院  " << "快递街  " << endl;
+	cout << endl;
+	cout << "Operation: " << endl;
+	cout << "1. Find place." << endl;
+	cout << "2. Calculate the shortest path between two places." << endl;
+	cout << "Any other input to quit." << endl;
+	cout << endl;
+
+	while (1)
+	{
+		
+		
+    int input = 0;
+		cout << "Please input the operation:" << endl;
+		cin >> input;
+		if (input == 1)
+		{
+			cout << "Please input the name of the place:" << endl;
+			char place[15];
+			cin >> place;
+			Vertex a = findVertex(JiangAn, place, vertexs);
+			printVertex(a);
+			cout << endl;
+		}
+		else if (input == 2)
+		{
+			cout << "Please input the name of the starting point:" << endl;
+			char start[15];
+			cin >> start;
+			Vertex b = findVertex(JiangAn, start, vertexs);
+			cout << "Please input the name of the end point:" << endl;
+			char end[15];
+			cin >> end;
+			Vertex c = findVertex(JiangAn, end, vertexs);
+			if (b.sequenceNumber != -1 && c.sequenceNumber != -1)
+			{
+				int dist[21];
+				int path[21];
+				Dijkstra(JiangAn, b.sequenceNumber, path, dist);
+				/*for (int i = 0; i < 21; i++)
+				{
+					cout << dist[i] << " ";
+				}
+				cout << endl;
+				for (int i = 0; i < 21; i++)
+				{
+					cout << path[i] << " ";
+				}
+				cout << endl;*/
+				printShortestPath(JiangAn, b.sequenceNumber, c.sequenceNumber, path, dist, vertexs);
+			}
+			else cout << "Error input!" << endl;
+			cout << endl;
+		}
+		else
+		{
+			cout << "Thanks for using!      *_*" << endl;
+			return;
+		}
+		cout << endl;
+	}
+}
