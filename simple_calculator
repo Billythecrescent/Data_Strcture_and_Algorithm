@@ -5,7 +5,6 @@
 
 //数据结构与算法实验课文件
 //第一次实验
-
 	//Stack abstract class
 	template <typename E> class Stack {
 	private:
@@ -198,7 +197,6 @@
 main函数
 	int main()
 	{
-
 		//生成一个即科学又帅比的界面
 		cout << "(☆▽☆) (*^_^*) (☆▽☆) (*^_^*) (☆▽☆) (*^_^*) (☆▽☆) (*^_^*) (☆▽☆) (*^_^*) (☆▽☆) (*^_^*)" << endl;
 		cout << endl;
